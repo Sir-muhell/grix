@@ -8,6 +8,7 @@ import {
   getBaseUsers,
   recoverPassword,
   updatePassword,
+  changePassword,
 } from "../controllers/userController";
 import { verifyToken, checkRole, authenticateUser } from "../middlewares/auth";
 
@@ -29,7 +30,8 @@ router.patch(
 );
 router.get("/event-owners", authenticateUser, getAllEventOwners);
 router.get("/base-users", authenticateUser, getBaseUsers);
-router.post("/recover-password", authenticateUser, recoverPassword);
-router.post("/update-password", authenticateUser, updatePassword);
+router.post("/recover-password", recoverPassword);
+router.post("/update-password", updatePassword);
+router.post("/change-password", authenticateUser, changePassword);
 
 export default router;

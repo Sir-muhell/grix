@@ -7,6 +7,7 @@ import validate from "../config/validate";
 import { RequestError } from "../config/handler";
 
 import {
+  changePasswordSchema,
   loginUserSchema,
   registerUserSchema,
   resetPasswordRequestSchema,
@@ -268,6 +269,43 @@ export const updatePassword = async (req: Request, res: Response) => {
     );
 
     res.status(200).json({ message: "Password updated successfully." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+export const changePassword = async (req: Request, res: Response) => {
+  try {
+    const data = validate(changePasswordSchema, req.body);
+    const { old_password, new_password } = data;
+
+    const user = await User.findById(req.user!.id);
+
+    if (!user) {
+      throw new RequestError("Invalid entry", 422, {
+        message: "User not found",
+      });
+    }
+
+    const isPasswordValid = await bcrypt.compare(old_password, user.password);
+    if (!isPasswordValid) {
+      throw new RequestError("Invalid entry", 422, {
+        old_password: "This password is incorrect",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(new_password, 10);
+
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { password: hashedPassword } }
+    );
+
+    res.status(200).json({
+      status: "success",
+      message: "Password changed successfully",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error." });
